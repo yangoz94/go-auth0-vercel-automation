@@ -8,14 +8,13 @@ import (
 )
 
 type Deployment struct {
-	UID          string `json:"uid"`
-	Name         string `json:"name"`
-	URL          string `json:"url"`
-	Created      int64  `json:"created"`
-	Source       string `json:"source,omitempty"`
-	State        string `json:"state,omitempty"`
-	Type         string `json:"type"`
-	InspectorURL string `json:"inspectorUrl"`
+	UID     string `json:"uid"`
+	Name    string `json:"name"`
+	URL     string `json:"url"`
+	Created int64  `json:"created"`
+	Source  string `json:"source,omitempty"`
+	State   string `json:"state,omitempty"`
+	Type    string `json:"type"`
 }
 
 type DeploymentsData struct {
@@ -35,14 +34,22 @@ func FetchDeploymentURLs(vercelToken string) ([]string, error) {
 	req.Header.Set("Authorization", "Bearer "+vercelToken)
 
 	resp, err := client.Do(req)
-	if err != nil {
-		return nil, errors.New("Error fetching deployment URLs")
+	switch resp.StatusCode {
+	case 400:
+		return nil, errors.New("400 - Invalid query parameters")
+	case 403:
+		return nil, errors.New("403 - Invalid Vercel Token")
+	case 404:
+		return nil, errors.New("404 - Not Found")
+	case 422:
+		return nil, errors.New("422 - Unprocessable Entity")
+	default:
+		if resp.StatusCode != 200 {
+			return nil, errors.New("Error fetching deployment URLs")
+		}
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode == 403 {
-		return nil, errors.New("Invalid Vercel Token")
-	}
+	defer resp.Body.Close()
 
 	var result DeploymentsData
 	err = json.NewDecoder(resp.Body).Decode(&result)
