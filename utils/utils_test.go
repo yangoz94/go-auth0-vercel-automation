@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
@@ -30,4 +31,34 @@ func TestContains(t *testing.T) {
 			}
 		})
 	}
+}
+
+
+type apiKeyTest struct {
+	name     string
+	apiKey   string
+	expected bool
+}
+
+func TestIsAPIKeyValid(t *testing.T) {
+	// Set a valid API key for testing
+	validAPIKey := "valid-api-key"
+	os.Setenv("API_KEY", validAPIKey)
+
+	tests := []apiKeyTest{
+		{"ValidAPIKey", validAPIKey, true},
+		{"InvalidAPIKey", "invalid-api-key", false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := IsAPIKeyValid(test.apiKey)
+			if result != test.expected {
+				t.Errorf("Expected %v for API key validity, but got %v", test.expected, result)
+			}
+		})
+	}
+
+	// Clean up  env var after the tests
+	os.Unsetenv("API_KEY")
 }
