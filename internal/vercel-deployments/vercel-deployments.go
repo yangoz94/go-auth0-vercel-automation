@@ -43,7 +43,7 @@ func FetchDeploymentURLs(token ...string) ([]string, error) {
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.vercel.com/v6/deployments?target=production", nil)
+	req, err := http.NewRequest("GET", "https://api.vercel.com/v6/deployments?target=production", nil) //?target=preview for preview deployments
 	if err != nil {
 		return nil, errors.New("Error creating request")
 	}
