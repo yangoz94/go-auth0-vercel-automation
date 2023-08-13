@@ -4,7 +4,11 @@ import (
 	"auth0-vercel-script/utils"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Deployment struct {
@@ -21,9 +25,20 @@ type DeploymentsData struct {
 	Deployments []Deployment `json:"deployments"`
 }
 
-func FetchDeploymentURLs(vercelToken string) ([]string, error) {
-	if vercelToken == "" {
-		return nil, errors.New("No Vercel Token provided")
+// FetchDeploymentURLs fetches the URLs of all Vercel deployments
+func FetchDeploymentURLs(token ...string) ([]string, error) {
+	// token is an optional parameter to make testing easier
+	var vercelToken string
+
+	if len(token) > 0 {
+		vercelToken = token[0]
+	} else {
+		// Load environment variables
+		err := godotenv.Load(".env.local")
+		if err != nil {
+			log.Fatal("Error loading .env.local file")
+		}
+		vercelToken = os.Getenv("VERCEL_TOKEN")
 	}
 
 	client := &http.Client{}
