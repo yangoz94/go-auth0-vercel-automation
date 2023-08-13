@@ -7,7 +7,7 @@ import (
 )
 
 
-type DeploymentDataTest struct {
+type DeploymentURLTest struct {
 	name        string
 	vercelToken string
 	expectErr   bool
@@ -17,7 +17,7 @@ func TestFetchDeploymentURLs(t *testing.T) {
 	// Load environment variables from .env.local file for testing
 	godotenv.Load("../../.env.local")
 
-	tests := []DeploymentDataTest {
+	tests := []DeploymentURLTest {
 		{
 			name:       "Valid Vercel Token",
 			vercelToken: os.Getenv("VERCEL_TOKEN"),
