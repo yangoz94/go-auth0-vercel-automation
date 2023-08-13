@@ -1,4 +1,3 @@
-
 package auth0callbacks
 
 import (
@@ -13,6 +12,15 @@ func UpdateCallbacks(auth0API *management.Management, clientID string, callbacks
 		Callbacks: &callbacks,
 	}
 	return auth0API.Client.Update(context.Background(), clientID, updates)
+}
+
+//TO-DO: Add tests for this function
+func GetCurrentCallbackURLs(auth0API *management.Management, clientID string) ([]string, error) {
+	client, err := auth0API.Client.Read(context.Background(), clientID)
+	if err != nil {
+		return nil, err
+	}
+	return *client.Callbacks, nil
 }
 
 func IsURLPresent(url string, callbacks []string) bool {
@@ -43,10 +51,11 @@ func PrintMissingURLs(missingURLs []string) {
 	}
 }
 
-func UpdateClientCallbacks(auth0API *management.Management, clientID string, urls []string) error {
+//TO-DO: Add tests for this function
+func UpdateClientCallbacks(auth0API *management.Management, clientID string, urls []string) (string, []string, error) {
 	client, err := auth0API.Client.Read(context.Background(), clientID)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
 	missingURLs := FindMissingURLs(client, urls)
@@ -54,12 +63,12 @@ func UpdateClientCallbacks(auth0API *management.Management, clientID string, url
 		updatedCallbacks := append(*client.Callbacks, missingURLs...)
 		err := UpdateCallbacks(auth0API, clientID, updatedCallbacks)
 		if err != nil {
-			return err
+			return "", nil, err
 		}
 		PrintMissingURLs(missingURLs)
 	} else {
-		fmt.Println("No missing URLs found.")
+		return "No missing URLs found for the client - Your callback URLs are already in sync!", nil, nil
 	}
 
-	return nil
+	return "Successfully updated callback URLs for the client", missingURLs, nil
 }
