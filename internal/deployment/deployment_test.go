@@ -6,15 +6,18 @@ import (
 	"github.com/joho/godotenv"
 )
 
+
+type DeploymentDataTest struct {
+	name        string
+	vercelToken string
+	expectErr   bool
+}
+
 func TestFetchDeploymentURLs(t *testing.T) {
 	// Load environment variables from .env.local file for testing
 	godotenv.Load("../../.env.local")
 
-	tests := []struct {
-		name       string
-		vercelToken string
-		expectErr  bool
-	}{
+	tests := []DeploymentDataTest {
 		{
 			name:       "Valid Vercel Token",
 			vercelToken: os.Getenv("VERCEL_TOKEN"),
