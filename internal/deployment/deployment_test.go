@@ -3,9 +3,9 @@ package deployment
 import (
 	"os"
 	"testing"
+
 	"github.com/joho/godotenv"
 )
-
 
 type DeploymentURLsTest struct {
 	name        string
@@ -15,23 +15,26 @@ type DeploymentURLsTest struct {
 
 func TestFetchDeploymentURLs(t *testing.T) {
 	// Load environment variables from .env.local file for testing
-	godotenv.Load("../../.env.local")
+	err := godotenv.Load("../.././.env.local")
+	if err != nil {
+		t.Fatal("Error loading .env.local file")
+	}
 
-	tests := []DeploymentURLsTest {
+	tests := []DeploymentURLsTest{
 		{
-			name:       "Valid Vercel Token",
+			name:        "Valid Vercel Token",
 			vercelToken: os.Getenv("VERCEL_TOKEN"),
-			expectErr:  false,
+			expectErr:   false,
 		},
 		{
-			name:       "Invalid Vercel Token",
+			name:        "Invalid Vercel Token",
 			vercelToken: "invalid_token_hehe",
-			expectErr:  true,
+			expectErr:   true,
 		},
 		{
-			name:       "Empty Vercel Token",
+			name:        "Empty Vercel Token",
 			vercelToken: "",
-			expectErr:  true,
+			expectErr:   true,
 		},
 	}
 
