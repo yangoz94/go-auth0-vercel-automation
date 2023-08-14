@@ -6,29 +6,27 @@ import (
 	"auth0-vercel-script/utils"
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/auth0/go-auth0/management"
-	"github.com/joho/godotenv"
 )
 
 func UpdateCallbackURLsHandler(w http.ResponseWriter, r *http.Request) {
 
-	err := godotenv.Load(".env.local")
-	if err != nil {
-		log.Fatal("Error loading .env.local file")
-	}
-
 	// Check if the request has a valid API key
 	apiKey := r.Header.Get("API-Key")
 	if apiKey == "" {
+		fmt.Println("Missing API key")
 		http.Error(w, "Missing API key", http.StatusUnauthorized)
 		return
 	} else if !utils.IsAPIKeyValid(apiKey) {
+		fmt.Println("Invalid API key")
 		http.Error(w, "Invalid API key", http.StatusUnauthorized)
 		return
 	}
+
+	fmt.Println("API key is valid")
 
 	// Parse the request body
 	var requestData struct {
@@ -38,9 +36,12 @@ func UpdateCallbackURLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		fmt.Println("Error decoding request body:", err)
 		http.Error(w, "Error decoding request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	fmt.Println("Request data:", requestData)
 
 	// Validate Auth0 credentials
 	if requestData.Auth0Domain == "" || requestData.Auth0ClientID == "" || requestData.Auth0ClientSecret == "" {
@@ -57,30 +58,41 @@ func UpdateCallbackURLsHandler(w http.ResponseWriter, r *http.Request) {
 		management.WithClientCredentials(context.Background(), clientID, clientSecret),
 	)
 	if err != nil {
+		fmt.Println("Invalid credentials:", err)
 		http.Error(w, "Invalid credentials: "+err.Error(), http.StatusUnauthorized) // Return Unauthorized status
 		return
 	}
 
+	fmt.Println("Auth0 credentials are valid")
 	urls, err := vercelDeployments.FetchDeploymentURLs()
 	if err != nil {
+		fmt.Println("Failed to fetch deployment URLs:", err)
 		http.Error(w, "Failed to fetch deployment URLs: "+err.Error(), http.StatusBadGateway)
 		return
 	}
 
+	fmt.Println("Fetched deployment URLs")
+
 	currentURLs, err := auth0callbacks.GetCurrentCallbackURLs(auth0API, clientID)
 	if err != nil {
+		fmt.Println("Failed to fetch current callback URLs:", err)
 		http.Error(w, "Failed to fetch current callback URLs: One or more Auth0 credentials are invalid/incorrect ", http.StatusBadGateway)
 		return
 	}
 
+	fmt.Println("Fetched current callback URLs")
+
 	message, newURLs, err := auth0callbacks.UpdateClientCallbacks(auth0API, clientID, urls)
 	if err != nil {
+		fmt.Println("Failed to update callback URLs:", err)
 		http.Error(w, "Failed to update callback URLs: Something went wrong", http.StatusBadGateway)
 		return
 	}
 
 	// Combine the newly added URLs with the current URLs
 	updatedURLs := append(currentURLs, newURLs...)
+
+	fmt.Println("Updated callback URLs")
 
 	// Prepare the response payload
 	response := struct {
@@ -100,6 +112,7 @@ func UpdateCallbackURLsHandler(w http.ResponseWriter, r *http.Request) {
 	// Marshal the response as JSON
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
+		fmt.Println("Failed to marshal response:", err)
 		http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
 		return
 	}
