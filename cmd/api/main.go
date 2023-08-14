@@ -2,14 +2,23 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+
+	handlers "auth0-vercel-script/internal/handlers"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	handlers "auth0-vercel-script/internal/handlers"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load the .env.local file
+	err := godotenv.Load(".env.local")
+	if err != nil {
+		log.Fatal("Error loading .env.local file")
+	}
+
 	// Create a new router
 	router := chi.NewRouter()
 	
